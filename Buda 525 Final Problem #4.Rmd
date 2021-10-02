@@ -1,0 +1,71 @@
+---
+title: "Untitled"
+author: "Team Knapp"
+date: "10/2/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Problem 4 (30 Points)
+
+The `Salaries` data in the `carData` package contains information on academic salaries in 2008 and 2009 in a college in the US. A data dictionary can be found in the `help` file for the data. This data was collected as part of an on-going effort of the college to monitor salary differences between male and female faculty members.  We have been asked to investigate the gender gap in the data, but also what other information that may be relevant to administrators (i.e. salary growth for years of service, discipline based growth, etc).  Investigate if there is a gender gap, but also provide insights on other drivers that you may see of salary in the data.  Is your model suitable to make offers based on the information provided?  Explain your reasoning.  Provide insights into any other information you find of interest.  
+**can we plug someones attributes in and know what they can/should be paid
+**Did they move?  Is it good enough to make an offer, how well does it predict
+**Model selection and defend what was picked
+```{r}
+library(carData)
+head(Salaries)
+help(Salaries)
+summary(Salaries)
+```
+#
+Only things we can take a log on are yrs.since.phd and salary.  The others are either factors or there is a zero in the data.
+```{r}
+LM1<- lm(salary~.,data=Salaries)
+plot(LM1)
+summary(LM1)
+boxCox(LM1)
+```
+
+#
+Interesting is that the significance of sexMale is insignificant along with a lowered significance of yrs.since.phd and yrs.service.
+boxCox shows we should take the inverse as it's centered around -1
+```{r}
+LM2<- lm(1/salary~1/.,data=Salaries)
+summary(LM2)
+boxCox(LM2)
+```
+#
+long code:
+LM2<- lm(1/salary~1/rank+1/discipline+1/yrs.since.phd+1/yrs.service+1/sex+1/salary,data=Salaries)
+
+That looks better.  It's centered closer around zero than before.  Notes say to take the log.  Like we said above, can only take log of salary and yrs.since.phd as the others are either factors or have zeros in the data.
+```{r}
+LM3<- lm(1/salary~rank+discipline+log(yrs.since.phd)+yrs.service+sex,data=Salaries)
+summary(LM3)
+boxCox(LM3)
+plot(allEffects(LM3))
+```
